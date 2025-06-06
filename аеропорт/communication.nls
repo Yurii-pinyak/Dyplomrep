@@ -1,0 +1,83 @@
+to-report add [msg field value]
+  ifelse field = "content:"
+  [report lput value lput field msg]
+  [report lput (word field value) msg]
+end
+
+to-report add-content [content msg]
+  report add msg "content:" content
+end
+
+to-report add-multiple-receivers [receivers msg]
+  foreach receivers [ set msg add-receiver ? msg ]
+  report msg
+end
+
+to-report add-receiver [receiver msg]
+  report add msg "receiver:" receiver
+end
+
+to-report add-sender [sender msg]
+  report add msg "sender:" sender
+end
+
+to-report get-performative [msg]
+  report first msg
+end
+
+to-report get-receivers [msg]
+  report map [remove "receiver:" ?] filter [not is-number? ? and member? "receiver:" ?] msg
+end
+
+to-report get-content [msg]
+  report item (position "content:" msg + 1) msg
+end
+
+to-report get-sender [msg]
+  report remove "sender:" first (filter [not is-number? ? and member? "sender:" ?] msg)
+end
+
+to-report create-reply [performative msg]
+  let msgOut 0
+  set msgOut create-message performative
+  set msgOut add-receiver (get-sender msg) msgOut
+  report msgOut
+end
+
+to-report create-message [performative]
+  report (list performative (word "sender:" who))
+end
+
+to broadcast-to [t-breed msg]
+  foreach [who] of t-breed [ send add-receiver ? msg ]
+end
+
+to remove-msg
+  set incoming-queue but-first incoming-queue
+end
+
+to-report get-message-no-remove
+  if empty? incoming-queue [report "no_message"]
+  report first incoming-queue
+end
+
+to-report get-message
+  if empty? incoming-queue [report "no_message"]
+  let nextmsg first incoming-queue
+  remove-msg
+  report nextmsg
+end
+
+to receive [msg]
+  if show_messages [show msg]
+  set incoming-queue lput msg incoming-queue
+end
+
+to send [msg]
+  let recipients get-receivers msg
+  let recv 0
+  foreach recipients [
+    set recv turtle (read-from-string ?)
+    if recv != nobody [without-interruption [ask recv [receive msg]]]
+  ]
+end

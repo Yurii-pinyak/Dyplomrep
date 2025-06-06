@@ -1,0 +1,101 @@
+to-report timeout_has_expired [start interval]
+  report (start + interval < ticks)
+end
+
+to-report timeout_expired [timeout]
+  report (word "timeout_has_expired " ticks " " timeout)
+end
+
+to wait-for-timeout
+  do-nothing
+end
+
+to do-nothing
+end
+
+to-report current-intention
+  report intention-name first intentions
+end
+
+to-report get-intention
+  report first intentions
+end
+
+to-report intention-name [intention]
+  report item 0 intention
+end
+
+to-report intention-done [intention]
+  report item 1 intention
+end
+
+to pop-intention
+  set intentions but-first intentions
+end
+
+to remove-intention [bdi-lib]
+  set intentions remove-item (position bdi-lib intentions) intentions
+end
+
+to add-intention [name done]
+  set intentions fput (list name done) intentions
+end
+
+to execute-intentions
+  if empty? intentions [stop]
+  let myInt get-intention
+  run intention-name myInt
+  if runresult intention-done myInt [remove-intention myInt]
+  if show-intentions [set label intentions]
+end
+
+to update-belief [bel]
+  remove-belief read-first-belief-of-type belief-type bel
+  add-belief bel
+end
+
+to-report read-first-belief-of-type [b-type]
+  report first beliefs-of-type b-type
+end
+
+to-report get-belief [b-type]
+  ifelse exist-beliefs-of-type b-type
+  [let bel first filter [first ? = b-type] beliefs
+   remove-belief bel
+   report bel]
+  [report false]
+end
+
+to-report beliefs-of-type [b-type]
+  report filter [first ? = b-type] beliefs
+end
+
+to-report exist-beliefs-of-type [b-type]
+  let blfs filter [first ? = b-type] beliefs
+  ifelse empty? blfs [report false] [report true]
+end
+
+to-report exists-belief [bel]
+  ifelse member? bel beliefs [report true] [report false]
+end
+
+to remove-belief [bel]
+  set beliefs remove bel beliefs
+end
+
+to add-belief [bel]
+  if member? bel beliefs [stop]
+  set beliefs fput bel beliefs
+end
+
+to-report belief-content [bel]
+  report item 1 bel
+end
+
+to-report belief-type [bel]
+  report first bel
+end
+
+to-report create-belief [b-type content]
+  report (list b-type content)
+end
